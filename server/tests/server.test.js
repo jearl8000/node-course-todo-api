@@ -1,14 +1,22 @@
 const expect = require('expect');
 const request = require('supertest');
 
+const {ObjectID} = require('mongodb');
+
 const {app} = require('./../server.js');
 const {Todo} = require('./../models/todo.js');
 
 // first we need to set up the environment to have no todos in it, or the length check below will fail
 // GET needs test data though, so let's set some up
 const todos = [
-    { text: 'First test todo'},
-    { text: 'Second test todo'}
+    { 
+        _id: new ObjectID(),
+        text: 'First test todo'
+    },
+    { 
+        _id: new ObjectID(),
+        text: 'Second test todo'
+    }
 ];
 
 beforeEach((done) => {
@@ -69,6 +77,32 @@ describe('GET /todos', () => {
             .expect((res) => {
                 expect(res.body.todos.length).toBe(2);
             })
+            .end(done);
+    });
+});
+
+describe('GET /todos/:id', () => {
+    it('should return todo doc', (done) => {
+        request(app)
+            .get(`/todos/${todos[0]._id.toHexString()}`)
+            .expect(200)
+            .expect((res) => {
+                expect(res.body.todo.text).toBe(todos[0].text);
+            })
+            .end(done);
+    });
+
+    it('should return a 404 if todo not found', (done) => {
+        request(app)
+            .get(`/todos/${new ObjectID().toHexString()}`)
+            .expect(404)
+            .end(done);
+    });
+
+    it('should return a 404 for an invalid ID', (done) => {
+        request(app)
+            .get('/todos/asdasdasd')
+            .expect(404)
             .end(done);
     });
 });
