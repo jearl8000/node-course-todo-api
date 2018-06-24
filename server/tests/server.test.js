@@ -5,9 +5,16 @@ const {app} = require('./../server.js');
 const {Todo} = require('./../models/todo.js');
 
 // first we need to set up the environment to have no todos in it, or the length check below will fail
+// GET needs test data though, so let's set some up
+const todos = [
+    { text: 'First test todo'},
+    { text: 'Second test todo'}
+];
+
 beforeEach((done) => {
     Todo.remove({}).then(() => { // removes all items from collection
-        done();
+        return Todo.insertMany(todos) // insert the test data
+            .then(() => { done(); });  
     });
 });
 
@@ -28,7 +35,7 @@ describe('POST /todos', () => {
                     return done(err); // return is just here to stop function execution
                 }
 
-                Todo.find().then((todos) => {
+                Todo.find({text:'Test todo text'}).then((todos) => {
                     expect(todos.length).toBe(1);
                     expect(todos[0].text).toBe(text);
                     done();
@@ -47,9 +54,21 @@ describe('POST /todos', () => {
                 }
 
                 Todo.find().then((todos) => {
-                    expect(todos.length).toBe(0);
+                    expect(todos.length).toBe(2); // 2 because of the test data added
                     done();
                 }).catch((e) => { done(e); });
             });
+    });
+});
+
+describe('GET /todos', () => {
+    it('should get all todos', (done) => {
+        request(app)
+            .get('/todos')
+            .expect(200)
+            .expect((res) => {
+                expect(res.body.todos.length).toBe(2);
+            })
+            .end(done);
     });
 });
