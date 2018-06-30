@@ -61,6 +61,28 @@ userSchema.methods.generateAuthToken = function(){
     });
 };
 
+// model (static) methods
+userSchema.statics.findByToken = function(token) {
+    var User = this;
+    var decoded;
+
+    try {
+        decoded = jwt.verify(token, 'secretsalt');
+    } catch(e) {
+        console.log("error in findByToken: ", e);
+        // return new Promise((resolve, reject) => {
+        //     reject();
+        // }); -- below is a shorter way of saying the same thing:
+        return Promise.reject();
+    }
+    // findOne returns a promise, so we return it, so that we can chain then() calls
+    return User.findOne({
+        _id: decoded._id,
+        'tokens.token': token,   // the quotes are needed because we're looking up subobjects
+        'tokens.access': 'auth'  // (basically we're quoting it to handle the dots)
+    });
+};
+
 var User = mongoose.model('User', userSchema);
 
 module.exports = {

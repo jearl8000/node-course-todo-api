@@ -8,6 +8,7 @@ const {ObjectID} = require('mongodb');
 var {mongoose} = require('./db/mongoose.js');
 var {Todo} = require('./models/todo.js');
 var {User} = require('./models/user.js');
+var {authenticate} = require('./middleware/authenticate.js');
 
 var app = express();
 const port = process.env.PORT;
@@ -115,6 +116,30 @@ app.post('/users', (req, res) => {
         res.status(400).send(err);
     });
 });
+
+app.get('/users/me', authenticate, (req, res) => {
+    res.send(req.user);
+});
+
+// pre-middlewareifying
+// app.get('/users/me', (req, res) => {
+//     var token = req.header('x-auth');
+//     console.log('token: ', token);
+//     User.findByToken(token).then((user) => {
+//         if (!user) {
+//             // freak out
+//             console.log('no user returned!');
+//             // we COULD do  res.sendStatus(401).send();
+//             // or we could be fancy and make the Promise fail
+//             return Promise.reject();
+
+//         }
+//         console.log('GET /users/me should return something');
+//         res.send(user);
+//     }).catch((e) => {
+//         res.sendStatus(401).send();
+//     });
+// });
 
 app.listen(port, () => {
     console.log(`Started on port ${port}`);
