@@ -101,16 +101,16 @@ app.patch('/todos/:id', (req, res) => {
 });
 
 app.post('/users', (req, res) => {
-    console.log(req.body);
+    // console.log(req.body);
     var body = _.pick(req.body, ["email", "password"]);
     var user = new User(body);
 
     user.save().then(() => {
-        console.log("are there tokens??", user.tokens);
+        // console.log("are there tokens??", user.tokens);
         // res.status(200).send(user);
         return user.generateAuthToken();
     }).then((token) => {
-        console.log("is there an auth token??", token);
+        // console.log("is there an auth token??", token);
         res.status(200).header('x-auth', token).send(user);
     }).catch((err) => {
         res.status(400).send(err);
@@ -119,6 +119,19 @@ app.post('/users', (req, res) => {
 
 app.get('/users/me', authenticate, (req, res) => {
     res.send(req.user);
+});
+
+app.post('/users/login', (req, res) => {
+    var body = _.pick(req.body, ["email", "password"]);
+    var user = new User(body);
+
+    User.findByCredentials(body.email, body.password).then((user) => {
+        return user.generateAuthToken().then((token) => {
+            res.status(200).header('x-auth', token).send(user);
+        });
+    }).catch((error) => {
+        res.status(400).send();
+    });
 });
 
 // pre-middlewareifying
