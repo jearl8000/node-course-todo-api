@@ -35,7 +35,7 @@ const userSchema = new Schema({
     }]
 });
 
-// instance methods
+// /////////////////// instance methods
 
 // override existing toJSON method to avoid sending unsafe data
 userSchema.methods.toJSON = function() {
@@ -61,8 +61,20 @@ userSchema.methods.generateAuthToken = function(){
         return token;
     });
 };
+userSchema.methods.removeToken = function(tokenToDel) {
+    var user = this;
+    
+    return user.update({
+        $pull: {
+            tokens: {
+                token: tokenToDel
+            }
+        }
+    });
+};
 
-// model (static) methods
+
+// /////////////////// model (static) methods
 userSchema.statics.findByToken = function(token) {
     var User = this;
     var decoded;
