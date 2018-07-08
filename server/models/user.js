@@ -52,7 +52,7 @@ userSchema.methods.generateAuthToken = function(){
     var token = jwt.sign({
         _id: user._id.toHexString(),
         access: access
-    }, 'secretsalt').toString();
+    }, process.env.JWT_SECRET).toString();
     user.tokens = user.tokens.concat([{access: access, token: token}]);
     // user.tokens.push({access: access, token: token});
 
@@ -80,7 +80,7 @@ userSchema.statics.findByToken = function(token) {
     var decoded;
 
     try {
-        decoded = jwt.verify(token, 'secretsalt');
+        decoded = jwt.verify(token, process.env.JWT_SECRET);
     } catch(e) {
         console.log("error in findByToken: ", e);
         // return new Promise((resolve, reject) => {
